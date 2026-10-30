@@ -1,4 +1,5 @@
-﻿import { useState } from "react";
+﻿import { useEffect, useState } from "react";
+import { BrowserRouter, Link, useLocation, useNavigate } from "react-router-dom";
 
 const trilhas = [
   { id: "jsx", numero: "01", titulo: "JSX", descricao: "Escreva interfaces com uma sintaxe familiar e expressiva.", icone: "✦", alvo: "exemplo-jsx" },
@@ -6,48 +7,34 @@ const trilhas = [
   { id: "props", numero: "03", titulo: "Props", descricao: "Passe dados de um componente para outro com clareza.", icone: "↗", alvo: "exemplo-props" },
   { id: "listas", numero: "04", titulo: "Listas e keys", descricao: "Transforme coleções de dados em elementos da interface.", icone: "☷", alvo: "exemplo-listas" },
   { id: "condicional", numero: "05", titulo: "Renderização condicional", descricao: "Mostre o conteúdo certo conforme cada situação.", icone: "◐", alvo: "exemplo-condicional" },
+  { id: "state", numero: "06", titulo: "State e useState", descricao: "Guarde informações que mudam e atualize a interface.", icone: "↻", alvo: "exemplo-state" },
+  { id: "formularios", numero: "07", titulo: "Formulários", descricao: "Capture e valide informações digitadas pela pessoa.", icone: "▤", alvo: "exemplo-formularios" },
+  { id: "useeffect", numero: "08", titulo: "useEffect", descricao: "Execute efeitos e limpe recursos quando necessário.", icone: "◷", alvo: "exemplo-useeffect" },
+  { id: "api", numero: "09", titulo: "Consumo de API", descricao: "Busque dados externos e trate carregamento e erros.", icone: "⇄", alvo: "exemplo-api" },
+  { id: "router", numero: "10", titulo: "React Router", descricao: "Navegue entre páginas sem recarregar a aplicação.", icone: "⌘", alvo: "exemplo-router" },
 ];
 
 const codigos = {
-  jsx: `// JSX descreve a estrutura visual do hero.
-<div className="hero-copy">
+  jsx: `<div className="hero-copy">
   <span className="eyebrow">UM GUIA PRÁTICO DE REACT</span>
   <h1>Ideias simples.<br /><span>Interfaces incríveis.</span></h1>
-  <p className="hero-description">
-    Aprenda os fundamentos do React construindo uma interface de verdade.
-  </p>
+  <p className="hero-description">Aprenda os fundamentos do React.</p>
 </div>`,
-  componentes: `// Header é um componente reutilizável.
-function Header({ code, closeCode }) {
-  return (
-    <>
-      <header className="topbar">
-        {/* marca, navegação e botão */}
-      </header>
-      <CodeExample
-        concept={code?.id === "componentes" ? code : null}
-        onClose={closeCode}
-      />
-    </>
-  );
+  componentes: `function Header() {
+  return <header className="topbar">React Lab</header>;
 }
 
-// O App renderiza o Header:
-<Header code={conceitoAberto} closeCode={fecharCodigo} />`,
-  props: `// TrilhaCard recebe os dados e a ação pelas props.
-function TrilhaCard({ numero, titulo, descricao, icone, onExplore }) {
+<Header />`,
+  props: `function TrilhaCard({ titulo, descricao, onExplore }) {
   return (
     <article className="trilha-card">
-      <span>{icone}</span>
-      <span>{numero}</span>
       <h3>{titulo}</h3>
       <p>{descricao}</p>
-      <button onClick={onExplore}>Explorar conceito</button>
+      <button onClick={onExplore}>Explorar</button>
     </article>
   );
 }
 
-// O componente pai fornece as props:
 <TrilhaCard {...trilha} onExplore={() => explorar(trilha)} />`,
   listas: `{trilhas.map((trilha) => (
   <TrilhaCard
@@ -56,19 +43,41 @@ function TrilhaCard({ numero, titulo, descricao, icone, onExplore }) {
     onExplore={() => explorar(trilha)}
   />
 ))}`,
-  condicional: `// O estado muda quando a pessoa clica.
-const [inscrito, setInscrito] = useState(false);
-
-// O ternário escolhe o conteúdo a renderizar.
-{inscrito ? (
-  <p className="success-message" role="status">
-    Sua jornada já começou!
-  </p>
+  condicional: `{inscrito ? (
+  <p role="status">Sua jornada já começou!</p>
 ) : (
-  <button onClick={() => setInscrito(true)}>
-    Começar a aprender
-  </button>
+  <button onClick={() => setInscrito(true)}>Começar</button>
 )}`,
+  state: `const [contador, setContador] = useState(0);
+
+<button onClick={() => setContador((valor) => valor + 1)}>
+  Cliques: {contador}
+</button>`,
+  formularios: `function enviarFormulario(evento) {
+  evento.preventDefault();
+  setMensagem('Olá, ' + nome + '!');
+}
+
+<form onSubmit={enviarFormulario}>
+  <input value={nome} onChange={(e) => setNome(e.target.value)} />
+  <button type="submit">Enviar</button>
+</form>`,
+  useeffect: `useEffect(() => {
+  const intervalo = window.setInterval(() => setHora(new Date()), 1000);
+  return () => window.clearInterval(intervalo);
+}, []);`,
+  api: `async function carregarPost() {
+  const resposta = await fetch("https://jsonplaceholder.typicode.com/posts/1");
+  const dados = await resposta.json();
+  setPost(dados);
+}`, 
+  router: `import { Link, useNavigate } from "react-router-dom";
+
+<Link to="/exemplo/inicio">Início</Link>
+<Link to="/exemplo/sobre">Sobre</Link>
+
+const navegar = useNavigate();
+navegar("/exemplo/contato");`,
 };
 
 const explicacoes = {
@@ -77,8 +86,12 @@ const explicacoes = {
   props: "Props são informações recebidas pelo componente. Aqui, dados da trilha e uma função de clique chegam ao TrilhaCard.",
   listas: "map percorre o array trilhas e cria um card para cada item. A key usa um identificador estável para React acompanhar cada card.",
   condicional: "inscrito começa como false. Ao clicar, setInscrito atualiza o estado e o ternário troca o botão pela mensagem de sucesso.",
+  state: "useState guarda o contador e fornece uma função para atualizá-lo. Essa atualização faz React renderizar o valor novo.",
+  formularios: "O campo é controlado pelo estado. onChange guarda o texto digitado e onSubmit processa o envio sem recarregar a página.",
+  useeffect: "useEffect inicia um intervalo ao montar o componente. A função de limpeza cancela o intervalo quando ele sai da tela.",
+  api: "A demonstração busca um post de uma API pública e apresenta o resultado, o carregamento ou uma mensagem de erro.",
+  router: "Link navega sem recarregar a aplicação. useNavigate permite mudar de rota depois de uma ação.",
 };
-
 function CodeExample({ concept, onClose }) {
   if (!concept) return null;
 
@@ -117,7 +130,62 @@ function TrilhaCard({ numero, titulo, descricao, icone, onExplore }) {
   );
 }
 
-export default function App() {
+
+function NovosExemplos({ trilhas, explorar, codigoAqui }) {
+  const [contador, setContador] = useState(0);
+  const [nome, setNome] = useState("");
+  const [mensagem, setMensagem] = useState("");
+  const [hora, setHora] = useState(() => new Date());
+  const [post, setPost] = useState(null);
+  const [carregando, setCarregando] = useState(false);
+  const [erro, setErro] = useState("");
+  const location = useLocation();
+  const navegar = useNavigate();
+
+  useEffect(() => {
+    const intervalo = window.setInterval(() => setHora(new Date()), 1000);
+    return () => window.clearInterval(intervalo);
+  }, []);
+
+  async function carregarPost() {
+    setCarregando(true);
+    setErro("");
+    try {
+      const resposta = await fetch("https://jsonplaceholder.typicode.com/posts/1");
+      if (!resposta.ok) throw new Error("A API respondeu com um erro.");
+      setPost(await resposta.json());
+    } catch {
+      setErro("Não foi possível carregar os dados. Verifique sua conexão e tente novamente.");
+    } finally {
+      setCarregando(false);
+    }
+  }
+
+  function enviarFormulario(evento) {
+    evento.preventDefault();
+    const nomeLimpo = nome.trim();
+    setMensagem(nomeLimpo ? `Olá, ${nomeLimpo}! Formulário enviado.` : "Digite seu nome antes de enviar.");
+  }
+
+  const cards = trilhas.filter((trilha) => ["state", "formularios", "useeffect", "api", "router"].includes(trilha.id));
+  return (
+    <section className="demos-section" aria-labelledby="demos-title">
+      <div className="section-heading"><div><span className="eyebrow">CONCEITOS EM AÇÃO</span><h2 id="demos-title">Experimente você mesmo.</h2></div><p>Interaja com cada exemplo e veja como React responde.</p></div>
+      <div className="demo-grid">
+        <article className="demo-card" id="exemplo-state"><DemoTitle concept={cards[0]} explorar={explorar} /><p className="demo-value">{contador}</p><button className="primary-button" onClick={() => setContador((valor) => valor + 1)}>Adicionar um clique <span>+</span></button>{codigoAqui("state")}</article>
+        <article className="demo-card" id="exemplo-formularios"><DemoTitle concept={cards[1]} explorar={explorar} /><form className="demo-form" onSubmit={enviarFormulario}><label htmlFor="nome-demo">Seu nome</label><input id="nome-demo" value={nome} onChange={(evento) => setNome(evento.target.value)} placeholder="Digite seu nome" /><button className="primary-button" type="submit">Enviar formulário <span>→</span></button></form>{mensagem && <p className="demo-feedback" role="status">{mensagem}</p>}{codigoAqui("formularios")}</article>
+        <article className="demo-card" id="exemplo-useeffect"><DemoTitle concept={cards[2]} explorar={explorar} /><p className="demo-value demo-clock">{hora.toLocaleTimeString("pt-BR")}</p><p className="demo-muted">Atualizado a cada segundo por um efeito.</p>{codigoAqui("useeffect")}</article>
+        <article className="demo-card" id="exemplo-api"><DemoTitle concept={cards[3]} explorar={explorar} /><p className="demo-muted">Carregue um post de demonstração usando JSONPlaceholder.</p><button className="primary-button" disabled={carregando} onClick={carregarPost}>{carregando ? "Carregando…" : "Buscar dados da API"} <span>↓</span></button>{erro && <p className="demo-error" role="alert">{erro}</p>}{post && <div className="api-result"><strong>{post.title}</strong><p>{post.body}</p></div>}{codigoAqui("api")}</article>
+        <article className="demo-card demo-router" id="exemplo-router"><DemoTitle concept={cards[4]} explorar={explorar} /><p className="demo-muted">Navegue entre rotas de exemplo sem recarregar a página.</p><div className="router-links"><Link to="/exemplo/inicio">Início</Link><Link to="/exemplo/sobre">Sobre</Link><button type="button" onClick={() => navegar("/exemplo/contato")}>Ir para Contato</button></div><p className="demo-feedback" aria-live="polite">Rota atual: <code>{location.pathname}</code>{location.pathname === "/exemplo/sobre" && <span> — Página Sobre de demonstração.</span>}{location.pathname === "/exemplo/contato" && <span> — Página Contato de demonstração.</span>}{location.pathname === "/exemplo/inicio" && <span> — Início de demonstração.</span>}</p>{codigoAqui("router")}</article>
+      </div>
+    </section>
+  );
+}
+
+function DemoTitle({ concept, explorar }) {
+  return <div className="demo-title"><span className="card-icon" aria-hidden="true">{concept.icone}</span><div><span className="card-number">{concept.numero} / CONCEITO</span><h3>{concept.titulo}</h3></div><button type="button" className="demo-code-link" onClick={() => explorar(concept)}>Ver código</button></div>;
+}
+function AppContent() {
   const [inscrito, setInscrito] = useState(false);
   const [conceitoAberto, setConceitoAberto] = useState(null);
 
@@ -161,7 +229,7 @@ export default function App() {
         </section>
 
         <section id="trilhas" className="trails-section">
-          <div className="section-heading"><div><span className="eyebrow">A BASE DE TUDO</span><h2>Aprenda fazendo.</h2></div><p>Cinco conceitos essenciais para sair da teoria e começar a criar.</p></div>
+          <div className="section-heading"><div><span className="eyebrow">A BASE DE TUDO</span><h2>Aprenda fazendo.</h2></div><p>Dez conceitos essenciais para sair da teoria e começar a criar.</p></div>
           <div className="trilha-grid" id="exemplo-listas">
             {trilhas.map((trilha) => <TrilhaCard key={trilha.id} {...trilha} onExplore={() => explorar(trilha)} />)}
           </div>
@@ -169,6 +237,7 @@ export default function App() {
           {codigoAqui("props")}
         </section>
 
+        <NovosExemplos trilhas={trilhas} explorar={explorar} codigoAqui={codigoAqui} />
         <section id="sobre" className="join-section">
           <div><span className="eyebrow">SUA JORNADA COMEÇA AQUI</span><h2>Pronto para criar<br />algo seu?</h2><p>Explore cada conceito no seu ritmo e descubra como as peças se conectam.</p></div>
           <div className="join-action" id="exemplo-condicional">
@@ -182,5 +251,15 @@ export default function App() {
     </div>
   );
 }
+
+
+
+
+export default function App() {
+  return <BrowserRouter><AppContent /></BrowserRouter>;
+}
+
+
+
 
 
